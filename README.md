@@ -44,7 +44,7 @@ Now you need to issue some TECH tokens to CommercialBank, so it could exchange t
 Run following command in the shell of CentralBank.
 
 ```
-flow start com.fintech.flows.IssueTokenToCommercialBank counterParty: "O=FintechCommercialBank,L=Russia,C=RU", amount: 10000
+flow start com.fintech.flows.IssueTokenToCommercialBank counterParty: "O=FintechCommercialBank,L=Moscow,C=RU", amount: 10000
 ```
 
 ## RequestIssueFromCentralBank
@@ -71,7 +71,7 @@ flow start com.fintech.flows.CurrencyExchange$CurrencyExchange amount: 50
 CentralBank can redeem previously issues tokens from CommercialBank using this flow:
 
 ```
-flow start com.fintech.flows.RedeemIssuedToken amount: 50, counterParty: "O=FintechCommercialBank,L=Russia,C=RU"
+flow start com.fintech.flows.RedeemIssuedToken amount: 50, counterParty: "O=FintechCommercialBank,L=Moscow,C=RU"
 ```
 
 ## RequestRedeemFromCentralBank
