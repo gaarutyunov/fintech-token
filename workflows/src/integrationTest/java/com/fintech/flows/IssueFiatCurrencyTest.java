@@ -40,7 +40,7 @@ public class IssueFiatCurrencyTest {
             Party customerA = customerAHandle.getNodeInfo().getLegalIdentities().get(0);
 
             try {
-                customerAHandle.getRpc().startTrackedFlowDynamic(IssueFiatCurrencyToCustomer.class, customerA, 100).getReturnValue().get();
+                customerAHandle.getRpc().startTrackedFlowDynamic(IssueFiatCurrencyToCustomer.class, 100.).getReturnValue().get();
             } catch (InterruptedException | ExecutionException e) {
                 throw new RuntimeException(e);
             }
