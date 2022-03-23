@@ -6,6 +6,7 @@ import com.fintech.states.FintechTokenType;
 import com.r3.corda.lib.tokens.contracts.states.FungibleToken;
 import com.r3.corda.lib.tokens.contracts.types.IssuedTokenType;
 import com.r3.corda.lib.tokens.contracts.utilities.AmountUtilitiesKt;
+import com.r3.corda.lib.tokens.contracts.utilities.TransactionUtilitiesKt;
 import com.r3.corda.lib.tokens.workflows.flows.issue.IssueTokensUtilitiesKt;
 import com.r3.corda.lib.tokens.workflows.internal.flows.distribution.UpdateDistributionListFlow;
 import net.corda.core.contracts.Amount;
@@ -28,6 +29,7 @@ public interface RequestIssueFromCentralBank {
      * Flow initiated by Commercial bank
      */
     @InitiatingFlow
+    @StartableByRPC
     class IssueRequestFlow extends FlowLogic<SignedTransaction> {
         private final double amount;
 
@@ -68,7 +70,7 @@ public interface RequestIssueFromCentralBank {
             final IssuedTokenType issuedTokenType = new IssuedTokenType(centralBank, tokenType);
             final Amount<IssuedTokenType> tokenAmount = AmountUtilitiesKt.amount(amount, issuedTokenType);
 
-            final FungibleToken fungibleToken = new FungibleToken(tokenAmount, commercialBank, null);
+            final FungibleToken fungibleToken = new FungibleToken(tokenAmount, commercialBank, TransactionUtilitiesKt.getAttachmentIdForGenericParam(tokenType));
 
             IssueTokensUtilitiesKt.addIssueTokens(txBuilder, Collections.singletonList(fungibleToken));
 

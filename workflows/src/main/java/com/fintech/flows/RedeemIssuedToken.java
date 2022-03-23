@@ -11,6 +11,7 @@ import com.r3.corda.lib.tokens.workflows.utilities.QueryUtilitiesKt;
 import net.corda.core.contracts.Amount;
 import net.corda.core.flows.FlowException;
 import net.corda.core.flows.FlowLogic;
+import net.corda.core.flows.StartableByRPC;
 import net.corda.core.identity.Party;
 import net.corda.core.node.services.vault.QueryCriteria;
 import net.corda.core.transactions.SignedTransaction;
@@ -21,6 +22,7 @@ import java.util.Collections;
 /**
  * This flow allows Central bank to redeem token amount issued to Commercial bank.
  */
+@StartableByRPC
 public class RedeemIssuedToken extends FlowLogic<SignedTransaction> {
     private final double amount;
     @NotNull

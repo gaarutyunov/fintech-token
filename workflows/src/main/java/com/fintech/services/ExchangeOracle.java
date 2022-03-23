@@ -1,5 +1,6 @@
 package com.fintech.services;
 
+import net.corda.core.node.AppServiceHub;
 import net.corda.core.node.services.CordaService;
 import net.corda.core.serialization.SingletonSerializeAsToken;
 
@@ -12,7 +13,13 @@ import java.util.Map;
  */
 @CordaService
 public class ExchangeOracle extends SingletonSerializeAsToken {
+    @SuppressWarnings("unused")
+    private final AppServiceHub services;
     private static final Map<String, Double> EXCHANGE_RATES = Collections.singletonMap("USD", 0.1);
+
+    public ExchangeOracle(AppServiceHub services) {
+        this.services = services;
+    }
 
     public Double getExchangeRate(String currencyCode) {
         return EXCHANGE_RATES.getOrDefault(currencyCode, 1.);

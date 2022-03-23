@@ -22,6 +22,7 @@ import java.util.stream.Collectors;
 
 public interface RequestRedeemFromCentralBank {
     @InitiatingFlow
+    @StartableByRPC
     class RequestRedeemFlow extends FlowLogic<SignedTransaction> {
         private final double amount;
 

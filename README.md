@@ -2,141 +2,82 @@
   <img src="https://www.corda.net/wp-content/uploads/2016/11/fg005_corda_b.png" alt="Corda" width="500">
 </p>
 
-# CorDapp Template - Java [<img src="https://raw.githubusercontent.com/corda/samples-java/master/webIDE.png" height=25 />](https://ide.corda.net/?folder=/home/coder/cordapp-template-java)
-
-Welcome to the Java CorDapp template. The CorDapp template is a stubbed-out CorDapp that you can use to bootstrap 
-your own CorDapps.
-
-**This is the Java version of the CorDapp template. The Kotlin equivalent is 
-[here](https://github.com/corda/cordapp-template-kotlin/).**
-
-# Pre-Requisites
-
-See https://docs.corda.net/getting-set-up.html.
+# Fintech Token (TECH)
 
 # Usage
 
-## Running tests inside IntelliJ
-	
-We recommend editing your IntelliJ preferences so that you use the Gradle runner - this means that the quasar utils
-plugin will make sure that some flags (like ``-javaagent`` - see below) are
-set for you.
+1. First you need to build the project using:
 
-To switch to using the Gradle runner:
+```bash
+./gradlew deployNodes
+```
 
-* Navigate to ``Build, Execution, Deployment -> Build Tools -> Gradle -> Runner`` (or search for `runner`)
-  * Windows: this is in "Settings"
-  * MacOS: this is in "Preferences"
-* Set "Delegate IDE build/run actions to gradle" to true
-* Set "Run test using:" to "Gradle Test Runner"
+2. Then run the nodes:
 
-If you would prefer to use the built in IntelliJ JUnit test runner, you can run ``gradlew installQuasar`` which will
-copy your quasar JAR file to the lib directory. You will then need to specify ``-javaagent:lib/quasar.jar``
-and set the run directory to the project root directory for each test.
+```bash
+./build/nodes/runnodes
+```
 
-## Running the nodes
+3. Then you can use interactive shell to use following flows:
 
-See https://docs.corda.net/tutorial-cordapp.html#running-the-example-cordapp.
+```
+com.fintech.flows.CurrencyExchange$RequestExchangeFlow
+com.fintech.flows.IssueFiatCurrencyToCustomer
+com.fintech.flows.IssueTokenToCommercialBank
+com.fintech.flows.RedeemIssuedToken
+com.fintech.flows.RequestIssueFromCentralBank$IssueRequestFlow
+com.fintech.flows.RequestRedeemFromCentralBank$RequestRedeemFlow
+```
 
-## Interacting with the nodes
+## IssueFiatCurrencyToCustomer
 
-### Shell
+First you need to issue some USD tokens to customer, so he could perform a cross-swap (CurrencyExchange flow).
+Run the following command in the interactive shell of CustomerA or CustomerB:
 
-When started via the command line, each node will display an interactive shell:
+```
+flow start com.fintech.flows.IssueFiatCurrencyToCustomer amount: 100
+```
 
-    Welcome to the Corda interactive shell.
-    Useful commands include 'help' to see what is available, and 'bye' to shut down the node.
-    
-    Tue Nov 06 11:58:13 GMT 2018>>>
+## IssueTokenToCommercialBank
 
-You can use this shell to interact with your node. For example, enter `run networkMapSnapshot` to see a list of 
-the other nodes on the network:
+Now you need to issue some TECH tokens to CommercialBank, so it could exchange them for USD afterwards. 
+Run following command in the shell of CentralBank.
 
-    Tue Nov 06 11:58:13 GMT 2018>>> run networkMapSnapshot
-    [
-      {
-      "addresses" : [ "localhost:10002" ],
-      "legalIdentitiesAndCerts" : [ "O=Notary, L=London, C=GB" ],
-      "platformVersion" : 3,
-      "serial" : 1541505484825
-    },
-      {
-      "addresses" : [ "localhost:10005" ],
-      "legalIdentitiesAndCerts" : [ "O=PartyA, L=London, C=GB" ],
-      "platformVersion" : 3,
-      "serial" : 1541505382560
-    },
-      {
-      "addresses" : [ "localhost:10008" ],
-      "legalIdentitiesAndCerts" : [ "O=PartyB, L=New York, C=US" ],
-      "platformVersion" : 3,
-      "serial" : 1541505384742
-    }
-    ]
-    
-    Tue Nov 06 12:30:11 GMT 2018>>> 
+```
+flow start com.fintech.flows.IssueTokenToCommercialBank counterParty: "O=FintechCommercialBank,L=Russia,C=RU", amount: 10000
+```
 
-You can find out more about the node shell [here](https://docs.corda.net/shell.html).
+## RequestIssueFromCentralBank
 
-### Client
+Also being a CommercialBank you can request CentralBank to issue you some TECH tokens:
 
-`clients/src/main/java/com/template/Client.java` defines a simple command-line client that connects to a node via RPC 
-and prints a list of the other nodes on the network.
+```
+flow start com.fintech.flows.RequestRedeemFromCentralBank$IssueRequestFlow amount: 1000
+```
 
-#### Running the client
+## CurrencyExchange
 
-##### Via the command line
+This is the most interesting flow of the application. 
+Being a customer (CustomerA or CustomerB) you can come to CommercialBank and sell it some USD tokens in exchange for TECH tokens:
 
-Run the `runTemplateClient` Gradle task. By default, it connects to the node with RPC address `localhost:10006` with 
-the username `user1` and the password `test`.
+```
+flow start com.fintech.flows.CurrencyExchange$CurrencyExchange amount: 50
+```
 
-##### Via IntelliJ
+**Note that `amount` parameter is the amount of USD tokens that you are selling!**
 
-Run the `Run Template Client` run configuration. By default, it connects to the node with RPC address `localhost:10006` 
-with the username `user1` and the password `test`.
+## RedeemIssuedToken
 
-### Webserver
+CentralBank can redeem previously issues tokens from CommercialBank using this flow:
 
-`clients/src/main/java/com/template/webserver/` defines a simple Spring webserver that connects to a node via RPC and 
-allows you to interact with the node over HTTP.
+```
+flow start com.fintech.flows.RedeemIssuedToken amount: 50, counterParty: "O=FintechCommercialBank,L=Russia,C=RU"
+```
 
-The API endpoints are defined here:
+## RequestRedeemFromCentralBank
 
-     clients/src/main/java/com/template/webserver/Controller.java
+Also a CommercialBank can request some previously issued tokens:
 
-And a static webpage is defined here:
-
-     clients/src/main/resources/static/
-
-#### Running the webserver
-
-##### Via the command line
-
-Run the `runTemplateServer` Gradle task. By default, it connects to the node with RPC address `localhost:10006` with 
-the username `user1` and the password `test`, and serves the webserver on port `localhost:10050`.
-
-##### Via IntelliJ
-
-Run the `Run Template Server` run configuration. By default, it connects to the node with RPC address `localhost:10006` 
-with the username `user1` and the password `test`, and serves the webserver on port `localhost:10050`.
-
-#### Interacting with the webserver
-
-The static webpage is served on:
-
-    http://localhost:10050
-
-While the sole template endpoint is served on:
-
-    http://localhost:10050/templateendpoint
-    
-# Extending the template
-
-You should extend this template as follows:
-
-* Add your own state and contract definitions under `contracts/src/main/java/`
-* Add your own flow definitions under `workflows/src/main/java/`
-* Extend or replace the client and webserver under `clients/src/main/java/`
-
-For a guided example of how to extend this template, see the Hello, World! tutorial 
-[here](https://docs.corda.net/hello-world-introduction.html).
+```
+flow start com.fintech.flows.RequestRedeemFromCentralBank$RequestRedeemFlow amount: 50
+```

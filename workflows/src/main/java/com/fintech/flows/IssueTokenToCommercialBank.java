@@ -6,10 +6,12 @@ import com.fintech.states.FintechTokenType;
 import com.r3.corda.lib.tokens.contracts.states.FungibleToken;
 import com.r3.corda.lib.tokens.contracts.types.IssuedTokenType;
 import com.r3.corda.lib.tokens.contracts.utilities.AmountUtilitiesKt;
+import com.r3.corda.lib.tokens.contracts.utilities.TransactionUtilitiesKt;
 import com.r3.corda.lib.tokens.workflows.flows.rpc.IssueTokens;
 import net.corda.core.contracts.Amount;
 import net.corda.core.flows.FlowException;
 import net.corda.core.flows.FlowLogic;
+import net.corda.core.flows.StartableByRPC;
 import net.corda.core.identity.AbstractParty;
 import net.corda.core.identity.Party;
 import net.corda.core.transactions.SignedTransaction;
@@ -20,6 +22,7 @@ import java.util.Collections;
 /**
  * By this flow Central bank can directly issue some amount of TECH token to Commercial bank.
  */
+@StartableByRPC
 public class IssueTokenToCommercialBank extends FlowLogic<SignedTransaction> {
     @NotNull
     private final AbstractParty counterParty;
@@ -57,8 +60,8 @@ public class IssueTokenToCommercialBank extends FlowLogic<SignedTransaction> {
         final IssuedTokenType issuedTokenType = new IssuedTokenType(issuer, tokenType);
         final Amount<IssuedTokenType> tokenAmount = AmountUtilitiesKt.amount(amount, issuedTokenType);
 
-        final FungibleToken fungibleToken = new FungibleToken(tokenAmount, counterParty, null);
+        final FungibleToken fungibleToken = new FungibleToken(tokenAmount, counterParty, TransactionUtilitiesKt.getAttachmentIdForGenericParam(tokenType));
 
-        return subFlow(new IssueTokens(Collections.singletonList(fungibleToken)));
+        return subFlow(new IssueTokens(Collections.singletonList(fungibleToken), Collections.emptyList()));
     }
 }

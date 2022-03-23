@@ -76,6 +76,11 @@ sourceSets {
 }
 //Module dependencis
 dependencies {
+    cordapp "$tokens_release_group:tokens-contracts:$tokens_release_version"
+    cordapp "$tokens_release_group:tokens-workflows:$tokens_release_version"
+    cordapp "$tokens_release_group:tokens-money:$tokens_release_version"
+    cordapp "$tokens_release_group:tokens-selection:$tokens_release_version"
+
     // Corda dependencies.
     cordaCompile "$corda_core_release_group:corda-core:$corda_core_release_version"
     cordaCompile "$corda_release_group:corda-node-api:$corda_release_version"
@@ -103,6 +108,10 @@ task deployNodes(type: net.corda.plugins.Cordform, dependsOn: ['jar']) {
         projectCordapp {
             deploy = false
         }
+        cordapp("$tokens_release_group:tokens-contracts:$tokens_release_version")
+        cordapp("$tokens_release_group:tokens-workflows:$tokens_release_version")
+        cordapp("$tokens_release_group:tokens-money:$tokens_release_version")
+        cordapp("$tokens_release_group:tokens-selection:$tokens_release_version")
         cordapp project(':contracts')
         cordapp project(':workflows')
         runSchemaMigration = true //This configuration is for any CorDapps with custom schema, We will leave this as true to avoid
@@ -110,56 +119,56 @@ task deployNodes(type: net.corda.plugins.Cordform, dependsOn: ['jar']) {
         //it to false for quicker project compiling time.
     }
     node {
-        name "O=Notary,L=Russia,C=RU"
+        name "O=Notary,L=Moscow,C=RU"
         notary = [validating : false]
-        p2pPort 10002
+        p2pPort 10001
         rpcSettings {
-            address("localhost:10003")
-            adminAddress("localhost:10043")
+            address("localhost:10002")
+            adminAddress("localhost:10040")
         }
     }
     node {
-        name "O=Fintech Central Bank,L=Russia,C=RU"
-        p2pPort 10005
+        name "O=FintechCentralBank,L=Moscow,C=RU"
+        p2pPort 10011
         rpcSettings {
-            address("localhost:10006")
-            adminAddress("localhost:10046")
+            address("localhost:10012")
+            adminAddress("localhost:10050")
         }
         rpcUsers = [[ user: "central_bank", "password": "qwerty78!", "permissions": ["ALL"]]]
     }
     node {
-        name "O=Fintech Commercial Bank,L=Russia,C=RU"
-        p2pPort 10008
+        name "O=FintechCommercialBank,L=Moscow,C=RU"
+        p2pPort 10021
         rpcSettings {
-            address("localhost:10009")
-            adminAddress("localhost:10049")
+            address("localhost:10022")
+            adminAddress("localhost:10060")
         }
         rpcUsers = [[ user: "commercial_bank", "password": "qwerty78!", "permissions": ["ALL"]]]
     }
     node {
-        name "O=Customer A,L=Russia,C=RU"
-        p2pPort 10009
+        name "O=CustomerA,L=Moscow,C=RU"
+        p2pPort 10031
         rpcSettings {
-            address("localhost:10010")
-            adminAddress("localhost:10050")
+            address("localhost:10032")
+            adminAddress("localhost:10070")
         }
         rpcUsers = [[ user: "customer_a", "password": "qwerty78!", "permissions": ["ALL"]]]
     }
     node {
-        name "O=Customer B,L=Russia,C=RU"
-        p2pPort 10010
+        name "O=CustomerB,L=Moscow,C=RU"
+        p2pPort 10041
         rpcSettings {
-            address("localhost:10011")
-            adminAddress("localhost:10051")
+            address("localhost:10042")
+            adminAddress("localhost:10080")
         }
         rpcUsers = [[ user: "customer_b", "password": "qwerty78!", "permissions": ["ALL"]]]
     }
     node {
-        name "O=Dollar Wallet,L=Russia,C=RU"
-        p2pPort 10011
+        name "O=DollarWallet,L=Moscow,C=RU"
+        p2pPort 10051
         rpcSettings {
-            address("localhost:10012")
-            adminAddress("localhost:10052")
+            address("localhost:10052")
+            adminAddress("localhost:10090")
         }
         rpcUsers = [[ user: "dollar_wallet", "password": "qwerty78!", "permissions": ["ALL"]]]
     }
