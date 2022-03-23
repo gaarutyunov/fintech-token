@@ -61,7 +61,7 @@ This is the most interesting flow of the application.
 Being a customer (CustomerA or CustomerB) you can come to CommercialBank and sell it some USD tokens in exchange for TECH tokens:
 
 ```
-flow start com.fintech.flows.CurrencyExchange$CurrencyExchange amount: 50
+flow start com.fintech.flows.CurrencyExchange$RequestExchangeFlow amount: 50
 ```
 
 **Note that `amount` parameter is the amount of USD tokens that you are selling!**
