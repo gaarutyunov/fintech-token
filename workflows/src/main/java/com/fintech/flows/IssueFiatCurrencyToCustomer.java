@@ -5,10 +5,10 @@ import com.fintech.constants.FintechTokenConstants;
 import com.r3.corda.lib.tokens.contracts.states.FungibleToken;
 import com.r3.corda.lib.tokens.contracts.types.IssuedTokenType;
 import com.r3.corda.lib.tokens.contracts.types.TokenType;
-import com.r3.corda.lib.tokens.contracts.utilities.AmountUtilitiesKt;
-import com.r3.corda.lib.tokens.contracts.utilities.TransactionUtilitiesKt;
+import com.r3.corda.lib.tokens.contracts.utilities.AmountUtilities;
 import com.r3.corda.lib.tokens.money.FiatCurrency;
 import com.r3.corda.lib.tokens.workflows.flows.rpc.IssueTokens;
+import com.r3.corda.lib.tokens.workflows.utilities.FungibleTokenBuilder;
 import net.corda.core.contracts.Amount;
 import net.corda.core.flows.FlowException;
 import net.corda.core.flows.FlowLogic;
@@ -34,7 +34,7 @@ public class IssueFiatCurrencyToCustomer extends FlowLogic<SignedTransaction> {
     @Override
     @Suspendable
     public SignedTransaction call() throws FlowException {
-        final AbstractParty holder = getOurIdentity();
+        final Party holder = getOurIdentity();
         final Party issuer = getServiceHub().getNetworkMapCache().getPeerByLegalName(FintechTokenConstants.DOLLAR_WALLET);
 
         if (issuer == null) {
@@ -47,10 +47,13 @@ public class IssueFiatCurrencyToCustomer extends FlowLogic<SignedTransaction> {
         }
 
         final TokenType tokenType = FiatCurrency.Companion.getInstance("USD");
-        final IssuedTokenType issuedTokenType = new IssuedTokenType(issuer, tokenType);
-        final Amount<IssuedTokenType> tokenAmount = AmountUtilitiesKt.amount(amount, issuedTokenType);
 
-        final FungibleToken fungibleToken = new FungibleToken(tokenAmount, holder, TransactionUtilitiesKt.getAttachmentIdForGenericParam(tokenType));
+        final FungibleToken fungibleToken = new FungibleTokenBuilder()
+                .ofTokenType(tokenType)
+                .withAmount(amount)
+                .issuedBy(issuer)
+                .heldBy(holder)
+                .buildFungibleToken();
 
         return subFlow(new IssueTokens(Collections.singletonList(fungibleToken), Collections.emptyList()));
     }

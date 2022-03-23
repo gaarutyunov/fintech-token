@@ -6,12 +6,12 @@ import com.fintech.services.ExchangeOracle;
 import com.fintech.states.FintechTokenType;
 import com.r3.corda.lib.tokens.contracts.states.FungibleToken;
 import com.r3.corda.lib.tokens.contracts.types.TokenType;
-import com.r3.corda.lib.tokens.contracts.utilities.AmountUtilitiesKt;
+import com.r3.corda.lib.tokens.contracts.utilities.AmountUtilities;
 import com.r3.corda.lib.tokens.money.FiatCurrency;
-import com.r3.corda.lib.tokens.workflows.flows.move.MoveTokensUtilitiesKt;
+import com.r3.corda.lib.tokens.workflows.flows.move.MoveTokensUtilities;
 import com.r3.corda.lib.tokens.workflows.internal.flows.distribution.UpdateDistributionListFlow;
 import com.r3.corda.lib.tokens.workflows.types.PartyAndAmount;
-import com.r3.corda.lib.tokens.workflows.utilities.QueryUtilitiesKt;
+import com.r3.corda.lib.tokens.workflows.utilities.QueryUtilities;
 import net.corda.core.contracts.Amount;
 import net.corda.core.contracts.InsufficientBalanceException;
 import net.corda.core.contracts.StateAndRef;
@@ -70,10 +70,10 @@ public interface CurrencyExchange {
             final FlowSession commercialBankSession = initiateFlow(commercialBank);
 
             final TokenType tokenType = FiatCurrency.Companion.getInstance("USD");
-            final Amount<TokenType> tokenAmount = AmountUtilitiesKt.amount(amount, tokenType);
+            final Amount<TokenType> tokenAmount = AmountUtilities.amount(amount, tokenType);
 
             // checking balance
-            final QueryCriteria queryCriteria = QueryUtilitiesKt.heldTokenAmountCriteria(tokenType, customer);
+            final QueryCriteria queryCriteria = QueryUtilities.heldTokenAmountCriteria(tokenType, customer);
 
             final List<StateAndRef<FungibleToken>> ownedTokens = getServiceHub().getVaultService().queryBy(FungibleToken.class, queryCriteria).getStates();
             if (ownedTokens.size() == 0) throw new InsufficientBalanceException(tokenAmount);
@@ -83,7 +83,7 @@ public interface CurrencyExchange {
             final BigDecimal diff = balance.subtract(BigDecimal.valueOf(amount));
 
             if (diff.compareTo(BigDecimal.ZERO) < 0) {
-                throw new InsufficientBalanceException(AmountUtilitiesKt.amount(diff.negate(), tokenType));
+                throw new InsufficientBalanceException(AmountUtilities.amount(diff.negate(), tokenType));
             }
 
             // send exchange request to commercial bank
@@ -91,7 +91,7 @@ public interface CurrencyExchange {
             final TransactionBuilder txBuilder = new TransactionBuilder(notary);
             final PartyAndAmount<TokenType> partyAndAmount = new PartyAndAmount<>(commercialBank, tokenAmount);
 
-            MoveTokensUtilitiesKt.addMoveFungibleTokens(txBuilder, getServiceHub(), Collections.singletonList(partyAndAmount), customer);
+            MoveTokensUtilities.addMoveFungibleTokens(txBuilder, getServiceHub(), Collections.singletonList(partyAndAmount), customer);
 
             final UntrustworthyData<Double> fintechTokenAmount = commercialBankSession.sendAndReceive(Double.class, amount);
 
@@ -106,11 +106,11 @@ public interface CurrencyExchange {
             }
 
             final FintechTokenType fintechTokenType = new FintechTokenType();
-            final Amount<TokenType> techTokenAmount = AmountUtilitiesKt.amount(verifiedAmount, fintechTokenType);
+            final Amount<TokenType> techTokenAmount = AmountUtilities.amount(verifiedAmount, fintechTokenType);
 
             final PartyAndAmount<TokenType> fintechPartyAndAmount = new PartyAndAmount<>(commercialBank, techTokenAmount);
 
-            MoveTokensUtilitiesKt.addMoveFungibleTokens(txBuilder, getServiceHub(), Collections.singletonList(fintechPartyAndAmount), commercialBank);
+            MoveTokensUtilities.addMoveFungibleTokens(txBuilder, getServiceHub(), Collections.singletonList(fintechPartyAndAmount), commercialBank);
 
             // collect signatures
             final SignedTransaction partSignedTx = getServiceHub().signInitialTransaction(txBuilder,
@@ -169,7 +169,7 @@ public interface CurrencyExchange {
 
                     // verify that the amount is the previously calculated
                     if (tokenOutputs.get(0).getAmount()
-                            .compareTo(AmountUtilitiesKt.amount(fintechTokenAmount, tokenOutputs.get(0).getIssuedTokenType())) != 0) {
+                            .compareTo(AmountUtilities.amount(fintechTokenAmount, tokenOutputs.get(0).getIssuedTokenType())) != 0) {
                         throw new FlowException("This is not the amount we are ready to issue");
                     }
                 }

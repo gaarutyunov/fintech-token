@@ -5,8 +5,8 @@ import com.fintech.constants.FintechTokenConstants;
 import com.fintech.states.FintechTokenType;
 import com.r3.corda.lib.tokens.contracts.states.FungibleToken;
 import com.r3.corda.lib.tokens.contracts.types.TokenType;
-import com.r3.corda.lib.tokens.contracts.utilities.AmountUtilitiesKt;
-import com.r3.corda.lib.tokens.workflows.flows.redeem.RedeemFlowUtilitiesKt;
+import com.r3.corda.lib.tokens.contracts.utilities.AmountUtilities;
+import com.r3.corda.lib.tokens.workflows.flows.redeem.RedeemFlowUtilities;
 import com.r3.corda.lib.tokens.workflows.internal.flows.distribution.UpdateDistributionListFlow;
 import net.corda.core.contracts.Amount;
 import net.corda.core.crypto.SecureHash;
@@ -60,9 +60,9 @@ public interface RequestRedeemFromCentralBank {
             final TransactionBuilder txBuilder = new TransactionBuilder(notary);
 
             final FintechTokenType tokenType = new FintechTokenType();
-            final Amount<TokenType> tokenAmount = AmountUtilitiesKt.amount(amount, tokenType);
+            final Amount<TokenType> tokenAmount = AmountUtilities.amount(amount, tokenType);
 
-            RedeemFlowUtilitiesKt.addFungibleTokensToRedeem(txBuilder, getServiceHub(), tokenAmount, centralBank, holder);
+            RedeemFlowUtilities.addFungibleTokensToRedeem(txBuilder, getServiceHub(), tokenAmount, centralBank, holder);
 
             // collect signatures
             final SignedTransaction partSignedTx = getServiceHub().signInitialTransaction(txBuilder,
@@ -109,7 +109,7 @@ public interface RequestRedeemFromCentralBank {
                     // this logic is for demonstration purposes
                     for (FungibleToken it : tokenOutputs) {
                         if (it.getAmount()
-                                .compareTo(AmountUtilitiesKt.amount(10, it.getIssuedTokenType())) < 0) {
+                                .compareTo(AmountUtilities.amount(10, it.getIssuedTokenType())) < 0) {
                             throw new FlowException("Cannot redeem less than 10 TECH tokens");
                         }
                     }

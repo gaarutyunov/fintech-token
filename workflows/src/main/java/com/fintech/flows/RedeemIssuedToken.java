@@ -5,9 +5,9 @@ import com.fintech.constants.FintechTokenConstants;
 import com.fintech.states.FintechTokenType;
 import com.r3.corda.lib.tokens.contracts.types.IssuedTokenType;
 import com.r3.corda.lib.tokens.contracts.types.TokenType;
-import com.r3.corda.lib.tokens.contracts.utilities.AmountUtilitiesKt;
+import com.r3.corda.lib.tokens.contracts.utilities.AmountUtilities;
 import com.r3.corda.lib.tokens.workflows.flows.rpc.RedeemFungibleTokens;
-import com.r3.corda.lib.tokens.workflows.utilities.QueryUtilitiesKt;
+import com.r3.corda.lib.tokens.workflows.utilities.QueryUtilities;
 import net.corda.core.contracts.Amount;
 import net.corda.core.flows.FlowException;
 import net.corda.core.flows.FlowLogic;
@@ -57,9 +57,9 @@ public class RedeemIssuedToken extends FlowLogic<SignedTransaction> {
         final Party issuer = getOurIdentity();
 
         final FintechTokenType tokenType = new FintechTokenType();
-        final Amount<TokenType> tokenAmount = AmountUtilitiesKt.amount(amount, tokenType);
+        final Amount<TokenType> tokenAmount = AmountUtilities.amount(amount, tokenType);
 
-        final QueryCriteria heldByCommercialBank = QueryUtilitiesKt.heldTokenAmountCriteria(tokenType, counterParty);
+        final QueryCriteria heldByCommercialBank = QueryUtilities.heldTokenAmountCriteria(tokenType, counterParty);
 
         return subFlow(new RedeemFungibleTokens(
                 tokenAmount, // How much to redeem

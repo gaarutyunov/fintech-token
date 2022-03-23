@@ -78,8 +78,6 @@ sourceSets {
 dependencies {
     cordapp "$tokens_release_group:tokens-contracts:$tokens_release_version"
     cordapp "$tokens_release_group:tokens-workflows:$tokens_release_version"
-    cordapp "$tokens_release_group:tokens-money:$tokens_release_version"
-    cordapp "$tokens_release_group:tokens-selection:$tokens_release_version"
 
     // Corda dependencies.
     cordaCompile "$corda_core_release_group:corda-core:$corda_core_release_version"

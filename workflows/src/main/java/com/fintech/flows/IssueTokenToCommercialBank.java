@@ -5,12 +5,13 @@ import com.fintech.constants.FintechTokenConstants;
 import com.fintech.states.FintechTokenType;
 import com.r3.corda.lib.tokens.contracts.states.FungibleToken;
 import com.r3.corda.lib.tokens.contracts.types.IssuedTokenType;
-import com.r3.corda.lib.tokens.contracts.utilities.AmountUtilitiesKt;
-import com.r3.corda.lib.tokens.contracts.utilities.TransactionUtilitiesKt;
+import com.r3.corda.lib.tokens.contracts.utilities.AmountUtilities;
 import com.r3.corda.lib.tokens.workflows.flows.rpc.IssueTokens;
+import com.r3.corda.lib.tokens.workflows.utilities.FungibleTokenBuilder;
 import net.corda.core.contracts.Amount;
 import net.corda.core.flows.FlowException;
 import net.corda.core.flows.FlowLogic;
+import net.corda.core.flows.InitiatingFlow;
 import net.corda.core.flows.StartableByRPC;
 import net.corda.core.identity.AbstractParty;
 import net.corda.core.identity.Party;
@@ -22,13 +23,14 @@ import java.util.Collections;
 /**
  * By this flow Central bank can directly issue some amount of TECH token to Commercial bank.
  */
+@InitiatingFlow
 @StartableByRPC
 public class IssueTokenToCommercialBank extends FlowLogic<SignedTransaction> {
     @NotNull
-    private final AbstractParty counterParty;
+    private final Party counterParty;
     private final double amount;
 
-    public IssueTokenToCommercialBank(final @NotNull AbstractParty counterParty, final double amount) {
+    public IssueTokenToCommercialBank(final @NotNull Party counterParty, final double amount) {
         this.counterParty = counterParty;
         this.amount = amount;
     }
@@ -57,10 +59,13 @@ public class IssueTokenToCommercialBank extends FlowLogic<SignedTransaction> {
         final Party issuer = getOurIdentity();
 
         final FintechTokenType tokenType = new FintechTokenType();
-        final IssuedTokenType issuedTokenType = new IssuedTokenType(issuer, tokenType);
-        final Amount<IssuedTokenType> tokenAmount = AmountUtilitiesKt.amount(amount, issuedTokenType);
 
-        final FungibleToken fungibleToken = new FungibleToken(tokenAmount, counterParty, TransactionUtilitiesKt.getAttachmentIdForGenericParam(tokenType));
+        final FungibleToken fungibleToken = new FungibleTokenBuilder()
+                .ofTokenType(tokenType)
+                .withAmount(amount)
+                .issuedBy(issuer)
+                .heldBy(counterParty)
+                .buildFungibleToken();
 
         return subFlow(new IssueTokens(Collections.singletonList(fungibleToken), Collections.emptyList()));
     }

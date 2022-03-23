@@ -11,15 +11,14 @@ import net.corda.testing.driver.NodeParameters;
 import net.corda.testing.node.TestCordapp;
 import org.junit.Test;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 import static net.corda.testing.driver.Driver.driver;
 
-public class IssueFiatCurrencyTest {
-    private final TestIdentity customerAIdentity = new TestIdentity(new CordaX500Name("CustomerA", "Moscow", "RU"));
-    private final TestIdentity dollarWalletIdentity = new TestIdentity(new CordaX500Name("DollarWallet", "Moscow", "RU"));
+public class IssueTokenTest {
+    private final TestIdentity commercialIdentity = new TestIdentity(new CordaX500Name("FintechCommercialBank", "Moscow", "RU"));
+    private final TestIdentity centralIdentity = new TestIdentity(new CordaX500Name("FintechCentralBank", "Moscow", "RU"));
 
     @Test
     public void issueTest() {
@@ -31,20 +30,24 @@ public class IssueFiatCurrencyTest {
                         TestCordapp.findCordapp("com.r3.corda.lib.tokens.contracts"))), dsl -> {
             // Start the nodes and wait for them both to be ready.
             List<CordaFuture<NodeHandle>> handleFutures = ImmutableList.of(
-                    dsl.startNode(new NodeParameters().withProvidedName(customerAIdentity.getName())),
-                    dsl.startNode(new NodeParameters().withProvidedName(dollarWalletIdentity.getName()))
+                    dsl.startNode(new NodeParameters().withProvidedName(commercialIdentity.getName())),
+                    dsl.startNode(new NodeParameters().withProvidedName(centralIdentity.getName()))
             );
 
-            NodeHandle customerAHandle;
+            NodeHandle commercialHandle;
+            NodeHandle centralHandle;
 
             try {
-                customerAHandle = handleFutures.get(0).get();
+                commercialHandle = handleFutures.get(0).get();
+                centralHandle = handleFutures.get(1).get();
             } catch (Exception e) {
                 throw new RuntimeException("Caught exception during test: ", e);
             }
 
+            Party commercialBank = commercialHandle.getNodeInfo().getLegalIdentities().get(0);
+
             try {
-                customerAHandle.getRpc().startTrackedFlowDynamic(IssueFiatCurrencyToCustomer.class, 100.).getReturnValue().get();
+                centralHandle.getRpc().startTrackedFlowDynamic(IssueTokenToCommercialBank.class, commercialBank, 100.).getReturnValue().get();
             } catch (InterruptedException | ExecutionException e) {
                 throw new RuntimeException(e);
             }

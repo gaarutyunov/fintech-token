@@ -5,10 +5,10 @@ import com.fintech.constants.FintechTokenConstants;
 import com.fintech.states.FintechTokenType;
 import com.r3.corda.lib.tokens.contracts.states.FungibleToken;
 import com.r3.corda.lib.tokens.contracts.types.IssuedTokenType;
-import com.r3.corda.lib.tokens.contracts.utilities.AmountUtilitiesKt;
-import com.r3.corda.lib.tokens.contracts.utilities.TransactionUtilitiesKt;
-import com.r3.corda.lib.tokens.workflows.flows.issue.IssueTokensUtilitiesKt;
+import com.r3.corda.lib.tokens.contracts.utilities.AmountUtilities;
+import com.r3.corda.lib.tokens.workflows.flows.issue.IssueTokensUtilities;
 import com.r3.corda.lib.tokens.workflows.internal.flows.distribution.UpdateDistributionListFlow;
+import com.r3.corda.lib.tokens.workflows.utilities.FungibleTokenBuilder;
 import net.corda.core.contracts.Amount;
 import net.corda.core.crypto.SecureHash;
 import net.corda.core.flows.*;
@@ -67,12 +67,15 @@ public interface RequestIssueFromCentralBank {
             final TransactionBuilder txBuilder = new TransactionBuilder(notary);
 
             final FintechTokenType tokenType = new FintechTokenType();
-            final IssuedTokenType issuedTokenType = new IssuedTokenType(centralBank, tokenType);
-            final Amount<IssuedTokenType> tokenAmount = AmountUtilitiesKt.amount(amount, issuedTokenType);
 
-            final FungibleToken fungibleToken = new FungibleToken(tokenAmount, commercialBank, TransactionUtilitiesKt.getAttachmentIdForGenericParam(tokenType));
+            final FungibleToken fungibleToken = new FungibleTokenBuilder()
+                    .ofTokenType(tokenType)
+                    .withAmount(amount)
+                    .issuedBy(centralBank)
+                    .heldBy(holder)
+                    .buildFungibleToken();
 
-            IssueTokensUtilitiesKt.addIssueTokens(txBuilder, Collections.singletonList(fungibleToken));
+            IssueTokensUtilities.addIssueTokens(txBuilder, Collections.singletonList(fungibleToken));
 
             // collect signatures
             final SignedTransaction partSignedTx = getServiceHub().signInitialTransaction(txBuilder,
@@ -121,7 +124,7 @@ public interface RequestIssueFromCentralBank {
 
                     // this logic is for demonstration purposes
                     if (tokenOutputs.get(0).getAmount()
-                            .compareTo(AmountUtilitiesKt.amount(1_000_000, tokenOutputs.get(0).getIssuedTokenType())) > 0) {
+                            .compareTo(AmountUtilities.amount(1_000_000, tokenOutputs.get(0).getIssuedTokenType())) > 0) {
                         throw new FlowException("Cannot issue more than 1 million TECH at a time");
                     }
                 }
